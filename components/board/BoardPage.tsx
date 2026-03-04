@@ -19,82 +19,168 @@ import EmptyState from '../ui/EmptyState';
 import Pagination from '../ui/Pagination';
 import { SkeletonBlock, SkeletonList } from '../ui/Skeleton';
 import {
-  Card,
-  CardBody,
-  CardHeader,
   Chip,
   Field,
   FieldGrid,
-  H2,
   Input,
   Label,
   Row,
   Select,
-  SubTitle,
-  Title,
 } from '../ui/Controls';
 import Link from 'next/link';
 import ProcessTabs from '../ui/ProcessTabs';
 import { formatKoreanDateTime, formatKoreanDateTimeRange } from '@/lib/utils/data';
+
+// --- Styled Components (Apple-like Modern & Clean) ---
+
+const PageContainer = styled.div`
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  /* 애플 특유의 은은한 밝은 회색 배경 */
+  background-color: #F5F5F7; 
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+`;
+
+const FlushHeader = styled.header`
+  width: 100%;
+  margin: 0;
+  padding: 64px 5% 48px;
+  background-color: #FFFFFF;
+  /* 눈에 잘 띄면서도 정갈한 하단 선 */
+  border-bottom: 1px solid #D2D2D7; 
+  box-sizing: border-box;
+`;
+
+const HeaderTitle = styled.h1`
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1D1D1F; /* 애플의 묵직한 기본 텍스트 색상 */
+  margin: 0 0 12px;
+  letter-spacing: -0.03em;
+`;
+
+const HeaderSubTitle = styled.p`
+  font-size: 1.0625rem;
+  font-weight: 400;
+  color: #86868B; /* 애플의 세련된 서브 텍스트 색상 */
+  margin: 0;
+  letter-spacing: -0.01em;
+`;
+
+const ContentSection = styled.main`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 5%;
+  box-sizing: border-box;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1D1D1F;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span.count {
+    color: #86868B;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+`;
 
 const List = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 12px;
+  gap: 20px; /* 카드 간 간격을 살짝 넓혀 여유롭게 */
 `;
 
 const ItemLink = styled(Link)`
   display: block;
-  padding: 18px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  background: ${({ theme }) => theme.colors.surface};
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  padding: 28px 32px;
+  background-color: #FFFFFF;
+  /* 선명하지만 얇고 고급스러운 애플 스타일 외곽선 */
+  border: 1px solid #D2D2D7; 
+  border-radius: 20px; /* 라운드를 살짝 더 주어 부드러운 인상 */
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  text-decoration: none;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.surface2};
+    border-color: #A1A1A6;
+    /* 과하지 않고 은은하게 퍼지는 그림자 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+    transform: translateY(-2px);
   }
+
   &:active {
-    transform: translateY(1px);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 `;
 
 const ItemTop = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 `;
 
 const ItemTitle = styled.h3`
-  margin: 12px 0 0;
-  font-size: ${({ theme }) => theme.fontSize.lg};
-  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1D1D1F;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
 `;
 
 const ItemExcerpt = styled.p`
-  margin: 8px 0 0;
-  color: ${({ theme }) => theme.colors.muted};
-  font-size: ${({ theme }) => theme.fontSize.md};
+  margin: 0 0 20px;
+  color: #4B5563;
+  font-size: 0.9375rem;
   line-height: 1.6;
-
+  
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const ItemMeta = styled.div`
-  margin-top: 12px;
-  color: ${({ theme }) => theme.colors.muted};
-  font-size: ${({ theme }) => theme.fontSize.sm};
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
+  color: #86868B;
+  font-size: 0.875rem;
+  font-weight: 500; /* 메타 데이터 가독성 강화 */
+
+  span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  span:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    background-color: #D2D2D7;
+    border-radius: 50%;
+    margin-left: 16px;
+  }
 `;
 
+// --- Helpers ---
+// (기존 헬퍼 함수 유지: chipToneByCategory, chipToneByDevStatusLabel, textIncludes, sortEntries)
 function chipToneByCategory(category: EntryCategory) {
   if (category === 'DEV') return 'primary';
   if (category === 'FEEDBACK') return 'warning';
@@ -114,20 +200,16 @@ function textIncludes(haystack: string, needle: string) {
 
 function sortEntries(entries: Entry[], sortKey: SortKey) {
   const createdMillis = (e: Entry) => e.createdAt?.toMillis?.() ?? 0;
-
   const categoryOrder: EntryCategory[] = ['DEV', 'FEEDBACK', 'REQUEST'];
   const companyOrder: Company[] = ['DX_SOLUTION', 'GOMOTECH'];
-
   const categoryRank = (c: EntryCategory) => categoryOrder.indexOf(c);
   const companyRank = (c: Company) => companyOrder.indexOf(c);
-
   const arr = [...entries];
 
   if (sortKey === 'LATEST') {
     arr.sort((a, b) => createdMillis(b) - createdMillis(a));
     return arr;
   }
-
   if (sortKey === 'CATEGORY') {
     arr.sort((a, b) => {
       const r = categoryRank(a.category) - categoryRank(b.category);
@@ -136,7 +218,6 @@ function sortEntries(entries: Entry[], sortKey: SortKey) {
     });
     return arr;
   }
-
   arr.sort((a, b) => {
     const r = companyRank(a.company) - companyRank(b.company);
     if (r !== 0) return r;
@@ -144,6 +225,8 @@ function sortEntries(entries: Entry[], sortKey: SortKey) {
   });
   return arr;
 }
+
+// --- Component ---
 
 export default function BoardPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -184,7 +267,6 @@ export default function BoardPage() {
 
   const filteredSorted = useMemo(() => {
     let arr = entries;
-
     if (category !== 'ALL') arr = arr.filter((e) => e.category === category);
     if (company !== 'ALL') arr = arr.filter((e) => e.company === company);
     if (process !== 'ALL') arr = arr.filter((e) => e.process === process);
@@ -212,19 +294,18 @@ export default function BoardPage() {
   }, [filteredSorted, safePage]);
 
   return (
-    <Card aria-label="개발관리 접수대장 목록">
-      <CardHeader>
-        <div>
-          <Title>접수대장</Title>
-          <SubTitle>공정별 개발진행/피드백/추가 요청을 기록하고 공유합니다. (실시간)</SubTitle>
-        </div>
-        {/* ✅ 새 글 작성 버튼은 상단 Nav(AppShell)만 사용 */}
-      </CardHeader>
+    <PageContainer aria-label="개발관리 접수대장 목록">
+      <FlushHeader>
+        <HeaderTitle>접수대장</HeaderTitle>
+        <HeaderSubTitle>
+          공정별 개발진행/피드백/추가 요청을 기록하고 공유합니다. (실시간)
+        </HeaderSubTitle>
+      </FlushHeader>
 
-      <CardBody>
-        <H2>필터 / 검색</H2>
+      <ContentSection>
+        <SectionTitle>필터 및 검색</SectionTitle>
 
-        <FieldGrid>
+        <FieldGrid style={{ marginBottom: '40px' }}>
           <Field>
             <Label htmlFor="sort">정렬</Label>
             <Select
@@ -287,47 +368,41 @@ export default function BoardPage() {
           </Field>
         </FieldGrid>
 
-        <div style={{ marginTop: 14 }}>
-          <Label>공정</Label>
+        <div style={{ marginBottom: '56px' }}>
+          <Label style={{ marginBottom: '16px', display: 'block', fontWeight: 600 }}>공정</Label>
           <ProcessTabs value={process} options={PROCESS_OPTIONS} onChange={setProcess} includeAll ariaLabel="공정 필터" />
         </div>
 
-        <div style={{ marginTop: 22 }}>
-          <H2>
-            목록 <span style={{ color: '#6B7280', fontSize: 16 }}>({filteredSorted.length}건)</span>
-          </H2>
+        <div>
+          <SectionTitle>
+            접수 목록 <span className="count">({filteredSorted.length}건)</span>
+          </SectionTitle>
 
           {loading ? (
             <SkeletonList aria-label="목록 로딩 중">
               {Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
-                <div key={i} style={{ padding: 18, borderRadius: 20, border: '1px solid #E5E7EB' }}>
-                  <Row>
-                    <SkeletonBlock $h={26} $w="110px" />
-                    <SkeletonBlock $h={26} $w="140px" />
-                    <SkeletonBlock $h={26} $w="180px" />
+                <div key={i} style={{ padding: '28px 32px', borderRadius: '20px', border: '1px solid #D2D2D7', backgroundColor: '#FFFFFF' }}>
+                  <Row style={{ marginBottom: '16px' }}>
+                    <SkeletonBlock $h={28} $w="80px" />
+                    <SkeletonBlock $h={28} $w="100px" />
                   </Row>
-                  <div style={{ marginTop: 12 }}>
-                    <SkeletonBlock $h={20} $w="70%" />
-                  </div>
-                  <div style={{ marginTop: 10 }}>
-                    <SkeletonBlock $h={16} $w="95%" />
-                    <div style={{ height: 8 }} />
-                    <SkeletonBlock $h={16} $w="78%" />
-                  </div>
+                  <SkeletonBlock $h={26} $w="60%" style={{ marginBottom: '14px' }} />
+                  <SkeletonBlock $h={18} $w="100%" style={{ marginBottom: '8px' }} />
+                  <SkeletonBlock $h={18} $w="80%" />
                 </div>
               ))}
             </SkeletonList>
           ) : error ? (
             <EmptyState
-              title="불러오기에 실패했어요"
-              description={`Firebase/네트워크 문제일 수 있어요. 에러: ${error}`}
+              title="데이터를 불러오지 못했습니다"
+              description={`네트워크 또는 서버 문제일 수 있습니다. 에러: ${error}`}
               actionLabel="새로고침"
               onAction={() => window.location.reload()}
             />
           ) : filteredSorted.length === 0 ? (
             <EmptyState
-              title="표시할 글이 없어요"
-              description="필터/검색 조건을 바꾸거나, 상단의 ‘새 글 작성’으로 등록해 주세요."
+              title="표시할 접수 내역이 없습니다"
+              description="검색 조건이나 필터를 변경해보시거나, 상단의 '새 글 작성' 버튼을 통해 등록해주세요."
             />
           ) : (
             <>
@@ -358,7 +433,7 @@ export default function BoardPage() {
 
                         <ItemMeta>
                           <span>
-                            {COMPANY_LABEL[e.company]} · {e.authorName}
+                            {COMPANY_LABEL[e.company]} {e.authorName}
                           </span>
                           <span>작성: {e.createdAt ? formatKoreanDateTime(e.createdAt) : '기록중…'}</span>
                           {e.category === 'DEV' && (
@@ -371,11 +446,13 @@ export default function BoardPage() {
                 })}
               </List>
 
-              <Pagination totalPages={totalPages} page={safePage} onChange={setPage} />
+              <div style={{ marginTop: '48px' }}>
+                <Pagination totalPages={totalPages} page={safePage} onChange={setPage} />
+              </div>
             </>
           )}
         </div>
-      </CardBody>
-    </Card>
+      </ContentSection>
+    </PageContainer>
   );
 }
