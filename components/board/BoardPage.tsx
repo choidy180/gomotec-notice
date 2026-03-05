@@ -20,18 +20,13 @@ import Pagination from '../ui/Pagination';
 import { SkeletonBlock, SkeletonList } from '../ui/Skeleton';
 import {
   Chip,
-  Field,
-  FieldGrid,
-  Input,
-  Label,
   Row,
-  Select,
-} from '../ui/Controls';
+} from '../ui/Controls'; // 기존 Field, Input 등은 커스텀 스타일로 대체
 import Link from 'next/link';
 import ProcessTabs from '../ui/ProcessTabs';
 import { formatKoreanDateTime, formatKoreanDateTimeRange } from '@/lib/utils/data';
 
-// --- Styled Components (Clean & Compact with Paperlogy Font) ---
+// --- Styled Components ---
 
 const PageContainer = styled.div`
   width: 100%;
@@ -39,7 +34,6 @@ const PageContainer = styled.div`
   padding: 0;
   background-color: #F9FAFB; 
   min-height: 100vh;
-  /* 폰트를 페이퍼로지로 완벽하게 고정 */
   font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
   
   * {
@@ -77,10 +71,84 @@ const HeaderSubTitle = styled.p`
 `;
 
 const ContentSection = styled.main`
-  max-width: 1300px; /* 요청하신 1300px 유지 */
+  max-width: 1300px; 
   margin: 0 auto;
   padding: 24px 5% 64px;
   box-sizing: border-box;
+`;
+
+// --- Filter Style Components (Trendy & Modern) ---
+
+const FilterCard = styled.div`
+  background-color: #FFFFFF;
+  border: 1px solid #F2F4F6;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const FilterGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+`;
+
+const FilterField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const FilterLabel = styled.label`
+  font-size: 0.8125rem;
+  color: #4E5968;
+  font-weight: 600;
+`;
+
+const commonInputStyles = `
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #E5E8EB;
+  background-color: #F9FAFB;
+  font-size: 0.9375rem;
+  color: #191F28;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #F2F4F6;
+  }
+
+  &:focus {
+    background-color: #FFFFFF;
+    border-color: #3182F6;
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.15);
+  }
+`;
+
+const StyledInput = styled.input`
+  ${commonInputStyles}
+  &::placeholder {
+    color: #8B95A1;
+  }
+`;
+
+const StyledSelect = styled.select`
+  ${commonInputStyles}
+  appearance: none;
+  cursor: pointer;
+  /* 커스텀 화살표 SVG 삽입 */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px; /* 화살표 영역 확보 */
 `;
 
 const SectionTitle = styled.h2`
@@ -104,50 +172,103 @@ const List = styled.ul`
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 10px; /* 리스트 간격 타이트하게 유지 */
+  gap: 16px; 
 `;
 
-const ItemLink = styled(Link)`
-  display: block;
-  padding: 16px 20px; /* 내부 여백 압축 */
+// --- Card Style Components (Instagram/Trendy Feed Vibe) ---
+
+const CardLink = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
   background-color: #FFFFFF;
-  border: 1px solid #E5E8EB; 
-  border-radius: 12px;
+  border: 1px solid #F2F4F6;
+  border-radius: 20px; 
   text-decoration: none;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); 
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  gap: 16px;
 
   &:hover {
-    background-color: #F9FAFB;
-    border-color: #D1D6DB;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: #E5E8EB;
   }
 
   &:active {
-    background-color: #F2F4F6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   }
 `;
 
-const ItemTop = styled.div`
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ProfileBox = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+  gap: 10px;
 `;
 
-const ItemTitle = styled.h3`
-  margin: 0 0 6px;
-  font-size: 1.0625rem;
+const Avatar = styled.div`
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E5E8EB 0%, #F2F4F6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #8B95A1;
+  font-size: 0.9375rem;
+`;
+
+const ProfileInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const AuthorName = styled.span`
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #191F28;
-  line-height: 1.4;
 `;
 
-const ItemExcerpt = styled.p`
-  margin: 0 0 10px;
-  color: #4E5968; 
+const CompanyName = styled.span`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8B95A1;
+`;
+
+const TimeMeta = styled.span`
+  font-size: 0.8125rem;
+  color: #AEB5BC;
+  font-weight: 500;
+`;
+
+const CardBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const CardTitle = styled.h3`
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #191F28;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+`;
+
+const CardExcerpt = styled.p`
+  margin: 0;
+  color: #4E5968;
   font-size: 0.9375rem;
-  line-height: 1.5;
-  
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -155,29 +276,31 @@ const ItemExcerpt = styled.p`
   text-overflow: ellipsis;
 `;
 
-const ItemMeta = styled.div`
+const CardFooter = styled.div`
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 4px;
   flex-wrap: wrap;
+  gap: 12px;
+`;
+
+const TagGroup = styled.div`
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+`;
+
+const ScheduleBadge = styled.div`
+  display: inline-flex;
   align-items: center;
-  color: #8B95A1;
-  font-size: 0.8125rem;
-  font-weight: 500;
-
-  span {
-    display: inline-flex;
-    align-items: center;
-  }
-
-  span:not(:last-child)::after {
-    content: '';
-    display: inline-block;
-    width: 3px;
-    height: 3px;
-    background-color: #D1D6DB;
-    border-radius: 50%;
-    margin-left: 10px;
-  }
+  background-color: #F0F6FF;
+  color: #3182F6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 `;
 
 // --- Helpers ---
@@ -293,15 +416,6 @@ export default function BoardPage() {
     return filteredSorted.slice(start, start + DEFAULT_PAGE_SIZE);
   }, [filteredSorted, safePage]);
 
-  // 필터 인풋 공통 스타일
-  const inputStyle = {
-    padding: '10px 14px',
-    borderRadius: '8px',
-    border: '1px solid #E5E8EB',
-    backgroundColor: '#FFFFFF',
-    fontSize: '0.9375rem',
-  };
-
   return (
     <PageContainer aria-label="개발관리 접수대장 목록">
       <FlushHeader>
@@ -312,78 +426,76 @@ export default function BoardPage() {
       </FlushHeader>
 
       <ContentSection>
-        {/* 기존의 레이아웃(FieldGrid)을 유지하되 간격만 다듬음 */}
-        <FieldGrid style={{ marginBottom: '20px', gap: '16px' }}>
-          <Field style={{ gap: '6px' }}>
-            <Label htmlFor="sort" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>정렬</Label>
-            <Select
-              id="sort"
-              value={sortKey}
-              onChange={(e) => setSortKey(e.target.value as SortKey)}
-              aria-label="정렬 기준"
-              style={inputStyle}
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
+        {/* 모던하고 깔끔한 필터 섹션 */}
+        <FilterCard>
+          <div>
+            <FilterLabel style={{ marginBottom: '12px', display: 'block' }}>공정 필터</FilterLabel>
+            <ProcessTabs value={process} options={PROCESS_OPTIONS} onChange={setProcess} includeAll ariaLabel="공정 필터" />
+          </div>
 
-          <Field style={{ gap: '6px' }}>
-            <Label htmlFor="search" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>검색</Label>
-            <Input
-              id="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="작성자, 제목, 내용 검색"
-              aria-label="작성자 제목 내용 검색"
-              style={inputStyle}
-            />
-          </Field>
+          <FilterGrid>
+            <FilterField>
+              <FilterLabel htmlFor="search">검색</FilterLabel>
+              <StyledInput
+                id="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="작성자, 제목, 내용 검색"
+                aria-label="작성자 제목 내용 검색"
+              />
+            </FilterField>
 
-          <Field style={{ gap: '6px' }}>
-            <Label htmlFor="category" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>항목</Label>
-            <Select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as EntryCategory | 'ALL')}
-              aria-label="항목 필터"
-              style={inputStyle}
-            >
-              <option value="ALL">전체 보기</option>
-              {CATEGORY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
+            <FilterField>
+              <FilterLabel htmlFor="sort">정렬 기준</FilterLabel>
+              <StyledSelect
+                id="sort"
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as SortKey)}
+                aria-label="정렬 기준"
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </StyledSelect>
+            </FilterField>
 
-          <Field style={{ gap: '6px' }}>
-            <Label htmlFor="company" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>소속</Label>
-            <Select
-              id="company"
-              value={company}
-              onChange={(e) => setCompany(e.target.value as Company | 'ALL')}
-              aria-label="소속 필터"
-              style={inputStyle}
-            >
-              <option value="ALL">전체 보기</option>
-              {COMPANY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </FieldGrid>
+            <FilterField>
+              <FilterLabel htmlFor="category">항목 필터</FilterLabel>
+              <StyledSelect
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as EntryCategory | 'ALL')}
+                aria-label="항목 필터"
+              >
+                <option value="ALL">전체 보기</option>
+                {CATEGORY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </StyledSelect>
+            </FilterField>
 
-        <div style={{ marginBottom: '32px' }}>
-          <Label style={{ display: 'block', fontSize: '0.8125rem', color: '#4E5968', marginBottom: '8px', fontWeight: 600 }}>공정 필터</Label>
-          <ProcessTabs value={process} options={PROCESS_OPTIONS} onChange={setProcess} includeAll ariaLabel="공정 필터" />
-        </div>
+            <FilterField>
+              <FilterLabel htmlFor="company">소속 필터</FilterLabel>
+              <StyledSelect
+                id="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value as Company | 'ALL')}
+                aria-label="소속 필터"
+              >
+                <option value="ALL">전체 보기</option>
+                {COMPANY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </StyledSelect>
+            </FilterField>
+          </FilterGrid>
+        </FilterCard>
 
         <div>
           <SectionTitle>
@@ -393,14 +505,17 @@ export default function BoardPage() {
           {loading ? (
             <SkeletonList aria-label="목록 로딩 중">
               {Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
-                <div key={i} style={{ padding: '16px 20px', borderRadius: '12px', border: '1px solid #E5E8EB', backgroundColor: '#FFFFFF' }}>
-                  <Row style={{ marginBottom: '10px' }}>
-                    <SkeletonBlock $h={24} $w="60px" />
-                    <SkeletonBlock $h={24} $w="80px" />
+                <div key={i} style={{ padding: '24px', borderRadius: '20px', border: '1px solid #F2F4F6', backgroundColor: '#FFFFFF', marginBottom: '16px' }}>
+                  <Row style={{ marginBottom: '16px', gap: '10px' }}>
+                    <SkeletonBlock $h={38} $w="38px" style={{ borderRadius: '50%' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <SkeletonBlock $h={16} $w="80px" />
+                      <SkeletonBlock $h={12} $w="60px" />
+                    </div>
                   </Row>
-                  <SkeletonBlock $h={20} $w="50%" style={{ marginBottom: '8px' }} />
+                  <SkeletonBlock $h={24} $w="70%" style={{ marginBottom: '12px' }} />
                   <SkeletonBlock $h={16} $w="100%" style={{ marginBottom: '6px' }} />
-                  <SkeletonBlock $h={16} $w="70%" />
+                  <SkeletonBlock $h={16} $w="50%" />
                 </div>
               ))}
             </SkeletonList>
@@ -430,31 +545,46 @@ export default function BoardPage() {
 
                   return (
                     <li key={e.id}>
-                      <ItemLink href={`/posts/${e.id}`} aria-label={`상세보기: ${e.title}`}>
-                        <ItemTop>
-                          <Chip $tone={chipToneByCategory(e.category)}>{CATEGORY_LABEL[e.category]}</Chip>
-                          <Chip>{e.process}</Chip>
-                          <Chip>{e.detail}</Chip>
-                          {e.category === 'DEV' && devLabel && (
-                            <Chip $tone={chipToneByDevStatusLabel(devLabel)}>{devLabel}</Chip>
-                          )}
-                        </ItemTop>
+                      <CardLink href={`/posts/${e.id}`} aria-label={`상세보기: ${e.title}`}>
+                        
+                        <CardHeader>
+                          <ProfileBox>
+                            <Avatar>
+                              {e.authorName ? e.authorName.charAt(0) : '익'}
+                            </Avatar>
+                            <ProfileInfo>
+                              <AuthorName>{e.authorName || '이름 없음'}</AuthorName>
+                              <CompanyName>{COMPANY_LABEL[e.company]}</CompanyName>
+                            </ProfileInfo>
+                          </ProfileBox>
+                          <TimeMeta>
+                            {e.createdAt ? formatKoreanDateTime(e.createdAt) : '기록중…'}
+                          </TimeMeta>
+                        </CardHeader>
 
-                        <ItemTitle>{e.title}</ItemTitle>
-                        <ItemExcerpt>{e.content}</ItemExcerpt>
+                        <CardBody>
+                          <CardTitle>{e.title}</CardTitle>
+                          <CardExcerpt>{e.content}</CardExcerpt>
+                        </CardBody>
 
-                        <ItemMeta>
-                          <span>
-                            {COMPANY_LABEL[e.company]} {e.authorName}
-                          </span>
-                          <span>{e.createdAt ? formatKoreanDateTime(e.createdAt) : '기록중…'}</span>
+                        <CardFooter>
+                          <TagGroup>
+                            <Chip $tone={chipToneByCategory(e.category)}>{CATEGORY_LABEL[e.category]}</Chip>
+                            <Chip>{e.process}</Chip>
+                            {e.detail && <Chip>{e.detail}</Chip>}
+                            {e.category === 'DEV' && devLabel && (
+                              <Chip $tone={chipToneByDevStatusLabel(devLabel)}>{devLabel}</Chip>
+                            )}
+                          </TagGroup>
+
                           {e.category === 'DEV' && e.plannedStartAt && e.plannedEndAt && (
-                            <span style={{ color: '#3182F6' }}>
-                              예정: {formatKoreanDateTimeRange(e.plannedStartAt, e.plannedEndAt)}
-                            </span>
+                            <ScheduleBadge>
+                              🗓 {formatKoreanDateTimeRange(e.plannedStartAt, e.plannedEndAt)}
+                            </ScheduleBadge>
                           )}
-                        </ItemMeta>
-                      </ItemLink>
+                        </CardFooter>
+
+                      </CardLink>
                     </li>
                   );
                 })}
