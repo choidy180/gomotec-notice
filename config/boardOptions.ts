@@ -29,12 +29,12 @@ export const DEV_STATUS_LABEL: Record<DevStatus, string> = {
 };
 
 export const COMPANY_OPTIONS: Array<{ value: Company; label: string }> = [
-  { value: 'DX_SOLUTION', label: '디엑스솔루션' },
+  { value: 'DX_SOLUTION', label: '디엑스솔루션즈' },
   { value: 'GOMOTECH', label: '고모텍' },
 ];
 
 export const COMPANY_LABEL: Record<Company, string> = {
-  DX_SOLUTION: '디엑스솔루션',
+  DX_SOLUTION: '디엑스솔루션즈',
   GOMOTECH: '고모텍',
 };
 

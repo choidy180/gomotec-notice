@@ -7,110 +7,235 @@ import Avatar from '../ui/Avatar';
 import Modal from '../ui/Modal';
 import EmptyState from '../ui/EmptyState';
 import { SkeletonBlock } from '../ui/Skeleton';
-import { Button, Card, CardBody, CardHeader, ErrorText, HelpText, Row, Title } from '../ui/Controls';
+import { Button, ErrorText, Row } from '../ui/Controls';
 import type { Comment } from '../../types/comment';
 import { createComment, deleteComment, subscribeComments, updateComment } from '../../lib/firebaseComments';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
+// --- Styled Components (High Density & Boxed Items) ---
+
+const SectionContainer = styled.section`
+  background: #FFFFFF;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px;
+  /* 컨테이너 내부 여백을 24px -> 20px로 축소 */
+  padding: 20px; 
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px; /* 헤더 여백 축소 */
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.125rem; /* 사이즈 살짝 축소하여 밀도 확보 */
+  font-weight: 700;
+  color: #191F28;
+  margin: 0;
+`;
+
+const CountBadge = styled.span`
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #3182F6; 
+`;
+
 const List = styled.ul`
   list-style: none;
-  padding: 0 0 120px;
-  margin: 16px 0 0;
+  padding: 0 0 16px;
+  margin: 0;
   display: grid;
-  gap: 16px;
+  gap: 10px; /* 댓글 간 간격을 10px로 타이트하게 조절 */
 `;
 
 const Item = styled.li`
   display: grid;
-  grid-template-columns: 52px 1fr;
+  grid-template-columns: 36px 1fr; /* 아바타 크기에 맞춰 그리드 축소 */
   gap: 12px;
-  padding: 16px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.lg};
+  /* 박스 형태로 명확히 구분되도록 배경색과 테두리 적용 */
+  padding: 14px 16px;
+  background: #F9FAFB; 
+  border: 1px solid #F2F4F6; 
+  border-radius: 12px;
 `;
 
 const Meta = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 6px;
 `;
 
 const Name = styled.span`
-  font-weight: 900;
-  font-size: ${({ theme }) => theme.fontSize.md};
+  font-weight: 600;
+  font-size: 0.875rem; /* 이름 폰트 축소 */
+  color: #191F28;
 `;
 
 const Time = styled.span`
-  font-weight: 800;
-  font-size: ${({ theme }) => theme.fontSize.sm};
-  color: ${({ theme }) => theme.colors.muted};
+  font-weight: 500;
+  font-size: 0.75rem; /* 시간 폰트 축소 */
+  color: #8B95A1;
 `;
 
 const Content = styled.div<{ $expanded?: boolean }>`
-  margin-top: 10px;
-  font-size: ${({ theme }) => theme.fontSize.md};
-  line-height: 1.7;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #333D4B;
   white-space: pre-wrap;
+  word-break: break-word;
 
   ${({ $expanded }) =>
     !$expanded &&
     css`
       display: -webkit-box;
-      -webkit-line-clamp: 5;
+      -webkit-line-clamp: 3; /* 타이트한 박스를 위해 접힌 글줄 제한 축소 */
       -webkit-box-orient: vertical;
       overflow: hidden;
     `}
 `;
 
+const ActionRow = styled(Row)`
+  margin-top: 6px; /* 여백 축소 */
+  justify-content: space-between;
+`;
+
+const ActionButton = styled.button`
+  background: transparent;
+  border: none;
+  color: #8B95A1;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: -8px; 
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #E5E8EB; /* 회색 배경 호버 시 조금 더 진하게 */
+    color: #4E5968;
+  }
+`;
+
+const ActionButtonDanger = styled(ActionButton)`
+  &:hover {
+    color: #F04452;
+  }
+`;
+
+// --- Composer Area ---
+
 const ComposerWrap = styled.div`
   position: sticky;
-  bottom: 12px;
-  margin-top: 16px;
+  bottom: 0;
+  background: #FFFFFF;
+  padding-top: 12px; /* 상단 여백 축소 */
+  border-top: 1px solid #E5E8EB;
+`;
+
+const EmojiRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px; /* 이모지 여백 축소 */
+  overflow-x: auto;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+`;
+
+const EmojiBtn = styled.button`
+  background: #F9FAFB;
+  border: 1px solid #E5E8EB;
+  border-radius: 16px; 
+  padding: 4px 10px; /* 이모지 버튼 크기 축소 */
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: #F2F4F6;
+  }
 `;
 
 const Composer = styled.div`
   display: grid;
-  grid-template-columns: 48px 1fr 56px;
+  grid-template-columns: 32px 1fr auto; /* 입력창 아바타 축소 */
   gap: 10px;
-  align-items: center;
-  padding: 12px;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.lg};
-  box-shadow: ${({ theme }) => theme.shadow.sm};
+  align-items: end; 
 `;
 
 const InputLike = styled.textarea`
   width: 100%;
-  min-height: 48px;
-  border: 0;
-  outline: 0;
+  min-height: 40px; /* 입력창 높이 더 축소 */
+  border: 1px solid #E5E8EB;
+  outline: none;
   resize: none;
-  padding: 12px 12px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.surface2};
-  font-size: ${({ theme }) => theme.fontSize.md};
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #FFFFFF; /* 댓글 박스와 구분을 위해 흰색 유지 */
+  font-size: 0.9375rem;
   line-height: 1.4;
+  color: #191F28;
+  transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: #B0B8C1;
+  }
+
+  &:focus {
+    border-color: #3182F6;
+  }
 `;
 
 const SendBtn = styled.button`
-  width: 56px;
-  height: 56px;
-  border-radius: ${({ theme }) => theme.radius.md};
+  width: 40px; /* 버튼 크기 축소 */
+  height: 40px;
+  border-radius: 10px;
   border: 0;
   cursor: pointer;
-  background: ${({ theme }) => theme.colors.primary};
+  background: #3182F6;
   color: white;
-  font-weight: 900;
-  font-size: ${({ theme }) => theme.fontSize.lg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #1B64DA;
+  }
 
   &:disabled {
-    opacity: 0.5;
+    background: #D1D6DB;
     cursor: not-allowed;
   }
 `;
+
+const EditTextArea = styled.textarea`
+  width: 100%;
+  min-height: 100px; /* 높이 약간 축소 */
+  border: 1px solid #E5E8EB;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  
+  &:focus {
+    border-color: #3182F6;
+  }
+`;
+
+// --- Component ---
+// (동작 로직은 기존과 완전히 동일합니다)
 
 type ModalState =
   | { type: 'EDIT'; comment: Comment }
@@ -200,8 +325,7 @@ export default function CommentsSection({
       });
       setText('');
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '댓글 등록 실패';
-      setErr(msg);
+      setErr(e instanceof Error ? e.message : '댓글 등록 실패');
     } finally {
       setSending(false);
     }
@@ -239,211 +363,181 @@ export default function CommentsSection({
       }
       setModal(null);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '처리 실패';
-      setModalErr(msg);
+      setModalErr(e instanceof Error ? e.message : '처리 실패');
     } finally {
       setModalBusy(false);
     }
   }
 
+  const SendIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5"></line>
+      <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+  );
+
   return (
-    <Card aria-label="댓글">
-      <CardHeader>
-        <div>
-          <Title>댓글</Title>
-          <HelpText>{comments.length}개</HelpText>
+    <SectionContainer aria-label="댓글 영역">
+      <SectionHeader>
+        <SectionTitle>댓글</SectionTitle>
+        <CountBadge>{comments.length}</CountBadge>
+      </SectionHeader>
+
+      {loading ? (
+        <div aria-label="댓글 로딩 중">
+          <SkeletonBlock $h={18} $w="200px" style={{ marginBottom: 8 }} />
+          <SkeletonBlock $h={16} $w="80%" style={{ marginBottom: 6 }} />
+          <SkeletonBlock $h={16} $w="60%" />
         </div>
-      </CardHeader>
+      ) : err ? (
+        <EmptyState
+          title="댓글을 불러오지 못했어요"
+          description={`에러: ${err}`}
+          actionLabel="새로고침"
+          onAction={() => window.location.reload()}
+        />
+      ) : comments.length === 0 ? (
+        <EmptyState title="아직 댓글이 없어요" description="첫 댓글을 남겨보세요." />
+      ) : (
+        <List aria-label="댓글 목록">
+          {comments.map((c) => {
+            const ts = c.createdAt?.toDate?.() ?? null;
+            const timeLabel = ts ? relTime(ts) : '기록중…';
+            const canToggle = c.content.length > 160 || c.content.includes('\n');
+            const isExpanded = !!expanded[c.id];
+            const isMine = !!user && user.uid === c.authorUid;
 
-      <CardBody>
-        {loading ? (
-          <div aria-label="댓글 로딩 중">
-            <SkeletonBlock $h={18} $w="240px" />
-            <div style={{ height: 10 }} />
-            <SkeletonBlock $h={18} $w="88%" />
-            <div style={{ height: 8 }} />
-            <SkeletonBlock $h={18} $w="92%" />
-          </div>
-        ) : err ? (
-          <EmptyState
-            title="댓글을 불러오지 못했어요"
-            description={`에러: ${err}`}
-            actionLabel="새로고침"
-            onAction={() => window.location.reload()}
-          />
-        ) : comments.length === 0 ? (
-          <EmptyState title="아직 댓글이 없어요" description="첫 댓글을 남겨보세요." />
-        ) : (
-          <List aria-label="댓글 목록">
-            {comments.map((c) => {
-              const ts = c.createdAt?.toDate?.() ?? null;
-              const timeLabel = ts ? relTime(ts) : '기록중…';
-              const canToggle = c.content.length > 160 || c.content.includes('\n');
-              const isExpanded = !!expanded[c.id];
-              const isMine = !!user && user.uid === c.authorUid;
+            return (
+              <Item key={c.id}>
+                <Avatar size={36} name={c.authorName} seed={c.authorUid} photoURL={c.authorPhotoURL} />
 
-              return (
-                <Item key={c.id}>
-                  <Avatar size={52} name={c.authorName} seed={c.authorUid} photoURL={c.authorPhotoURL} />
+                <div>
+                  <Meta>
+                    <Name>{c.authorName}</Name>
+                    <Time>{timeLabel}</Time>
+                    {c.updatedAt && <Time>(수정됨)</Time>}
+                  </Meta>
 
-                  <div>
-                    <Meta>
-                      <Name>{c.authorName}</Name>
-                      <Time>{timeLabel}</Time>
-                      {c.updatedAt ? <Time>(수정됨)</Time> : null}
-                    </Meta>
+                  <Content $expanded={isExpanded}>{c.content}</Content>
 
-                    <Content $expanded={isExpanded}>{c.content}</Content>
-
-                    <Row style={{ marginTop: 10, justifyContent: 'space-between' }}>
-                      <Row>
-                        {canToggle ? (
-                          <Button
-                            type="button"
-                            $variant="ghost"
-                            onClick={() => setExpanded((p) => ({ ...p, [c.id]: !isExpanded }))}
-                          >
-                            {isExpanded ? '접기' : '더보기'}
-                          </Button>
-                        ) : null}
-                      </Row>
-
-                      {isMine ? (
-                        <Row>
-                          <Button
-                            type="button"
-                            $variant="ghost"
-                            onClick={() => {
-                              setModal({ type: 'EDIT', comment: c });
-                              setModalText(c.content);
-                              setModalErr(null);
-                              setModalBusy(false);
-                            }}
-                          >
-                            수정
-                          </Button>
-                          <Button
-                            type="button"
-                            $variant="danger"
-                            onClick={() => {
-                              setModal({ type: 'DELETE', comment: c });
-                              setModalText('');
-                              setModalErr(null);
-                              setModalBusy(false);
-                            }}
-                          >
-                            삭제
-                          </Button>
-                        </Row>
-                      ) : (
-                        <span />
+                  <ActionRow>
+                    <div>
+                      {canToggle && (
+                        <ActionButton type="button" onClick={() => setExpanded((p) => ({ ...p, [c.id]: !isExpanded }))}>
+                          {isExpanded ? '접기' : '더보기'}
+                        </ActionButton>
                       )}
-                    </Row>
-                  </div>
-                </Item>
-              );
-            })}
-          </List>
-        )}
+                    </div>
 
-        <ComposerWrap aria-label="댓글 작성 바">
-          <Row style={{ gap: 10, overflowX: 'auto', padding: '10px 0' }} aria-label="이모지 빠른 입력">
-            {emojis.map((e) => (
-              <Button
-                key={e}
-                type="button"
-                $variant="ghost"
-                onClick={() => {
-                  if (!user) {
-                    auth.openLogin({ redirectTo: `/posts/${entryId}` });
-                    return;
-                  }
-                  setText((p) => (p ? `${p} ${e}` : e));
-                }}
-                aria-label={`이모지 추가 ${e}`}
-              >
-                {e}
-              </Button>
-            ))}
-          </Row>
+                    {isMine && (
+                      <Row style={{ gap: 4 }}>
+                        <ActionButton
+                          type="button"
+                          onClick={() => {
+                            setModal({ type: 'EDIT', comment: c });
+                            setModalText(c.content);
+                            setModalErr(null);
+                            setModalBusy(false);
+                          }}
+                        >
+                          수정
+                        </ActionButton>
+                        <ActionButtonDanger
+                          type="button"
+                          onClick={() => {
+                            setModal({ type: 'DELETE', comment: c });
+                            setModalText('');
+                            setModalErr(null);
+                            setModalBusy(false);
+                          }}
+                        >
+                          삭제
+                        </ActionButtonDanger>
+                      </Row>
+                    )}
+                  </ActionRow>
+                </div>
+              </Item>
+            );
+          })}
+        </List>
+      )}
 
-          <Composer>
-            {user && profile ? (
-              <Avatar size={48} name={profile.name} seed={user.uid} photoURL={profile.photoURL} />
-            ) : (
-              <div />
-            )}
-
-            <InputLike
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder={user ? '댓글로 의견을 남겨보세요' : '로그인 후 댓글 작성 가능'}
-              aria-label="댓글 입력"
-              onFocus={() => {
-                if (!user) auth.openLogin({ redirectTo: `/posts/${entryId}` });
+      <ComposerWrap aria-label="댓글 작성 바">
+        <EmojiRow aria-label="이모지 빠른 입력">
+          {emojis.map((e) => (
+            <EmojiBtn
+              key={e}
+              type="button"
+              onClick={() => {
+                if (!user) {
+                  auth.openLogin({ redirectTo: `/posts/${entryId}` });
+                  return;
+                }
+                setText((p) => (p ? `${p} ${e}` : e));
               }}
-            />
+              aria-label={`이모지 추가 ${e}`}
+            >
+              {e}
+            </EmojiBtn>
+          ))}
+        </EmojiRow>
 
-            <SendBtn type="button" onClick={submit} disabled={sending || !text.trim()} aria-label="댓글 등록">
-              ↑
-            </SendBtn>
-          </Composer>
+        <Composer>
+          {user && profile ? (
+            <Avatar size={32} name={profile.name} seed={user.uid} photoURL={profile.photoURL} />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F2F4F6' }} />
+          )}
 
-          {!user ? (
-            <Row style={{ marginTop: 10, justifyContent: 'flex-end' }}>
-              <Button type="button" $variant="primary" onClick={() => auth.openLogin({ redirectTo: `/posts/${entryId}` })}>
-                로그인하고 댓글 쓰기
-              </Button>
-            </Row>
-          ) : null}
-        </ComposerWrap>
+          <InputLike
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={user ? '댓글을 남겨보세요' : '로그인 후 작성 가능'}
+            aria-label="댓글 입력"
+            onFocus={() => {
+              if (!user) auth.openLogin({ redirectTo: `/posts/${entryId}` });
+            }}
+          />
 
-        <Modal
-          open={!!modal}
-          title={modal?.type === 'EDIT' ? '댓글 수정' : '댓글 삭제'}
-          description={
-            modal?.type === 'EDIT' ? '댓글 내용을 수정합니다.' : '댓글을 삭제합니다. 삭제는 되돌릴 수 없습니다.'
-          }
-          onClose={() => setModal(null)}
-          footer={
-            <>
-              <Button type="button" $variant="ghost" onClick={() => setModal(null)}>
-                취소
-              </Button>
-              <Button
-                type="button"
-                $variant={modal?.type === 'DELETE' ? 'danger' : 'primary'}
-                onClick={confirmModal}
-                disabled={modalBusy}
-              >
-                {modalBusy ? '처리 중…' : modal?.type === 'DELETE' ? '삭제' : '저장'}
-              </Button>
-            </>
-          }
-        >
-          {modal?.type === 'EDIT' ? (
-            <>
-              <textarea
-                value={modalText}
-                onChange={(e) => setModalText(e.target.value)}
-                style={{
-                  width: '100%',
-                  minHeight: 160,
-                  borderRadius: 12,
-                  border: '1px solid #E5E7EB',
-                  padding: 14,
-                  fontSize: 18,
-                  fontFamily: 'inherit',
-                }}
-                aria-label="댓글 수정 내용"
-              />
-              <div style={{ height: 12 }} />
-            </>
-          ) : null}
+          <SendBtn type="button" onClick={submit} disabled={sending || !text.trim()} aria-label="댓글 등록">
+            <SendIcon />
+          </SendBtn>
+        </Composer>
+      </ComposerWrap>
 
-          {modalErr ? <ErrorText>{modalErr}</ErrorText> : null}
-        </Modal>
-      </CardBody>
-    </Card>
+      <Modal
+        open={!!modal}
+        title={modal?.type === 'EDIT' ? '댓글 수정' : '댓글 삭제'}
+        description={
+          modal?.type === 'EDIT' ? '' : '댓글을 삭제합니다. 삭제는 되돌릴 수 없습니다.'
+        }
+        onClose={() => setModal(null)}
+        footer={
+          <>
+            <Button type="button" $variant="ghost" onClick={() => setModal(null)}>
+              취소
+            </Button>
+            <Button
+              type="button"
+              $variant={modal?.type === 'DELETE' ? 'danger' : 'primary'}
+              onClick={confirmModal}
+              disabled={modalBusy}
+            >
+              {modalBusy ? '처리 중…' : modal?.type === 'DELETE' ? '삭제하기' : '수정 완료'}
+            </Button>
+          </>
+        }
+      >
+        {modal?.type === 'EDIT' && (
+          <EditTextArea
+            value={modalText}
+            onChange={(e) => setModalText(e.target.value)}
+            aria-label="댓글 수정 내용"
+          />
+        )}
+        {modalErr && <ErrorText style={{ marginTop: 12 }}>{modalErr}</ErrorText>}
+      </Modal>
+    </SectionContainer>
   );
 }

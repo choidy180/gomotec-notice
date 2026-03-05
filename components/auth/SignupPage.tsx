@@ -56,16 +56,20 @@ export default function SignupPage() {
 
     setBusy(true);
     try {
-      // 이름(소속 내) 중복 방지
+      // ✅ 이름(소속 내) 중복 방지
       await assertNameAvailable(company, n);
 
       const email = makeInternalEmail(company, p);
 
-      // Firebase Auth 계정 생성(내부 이메일 사용)
+      // ✅ Firebase Auth 계정 생성(내부 이메일 사용)
       const cred = await createUserWithEmailAndPassword(auth, email, pw);
+
+      // ✅ (중요) 토큰 레이스 방지: Auth 생성 직후 Firestore write 전에 토큰 확정
+      await cred.user.getIdToken(true);
+
       const uid = cred.user.uid;
 
-      // Firestore profile + login index 생성
+      // ✅ Firestore profile + login index 생성
       await createUserProfileAndIndex({
         uid,
         company,

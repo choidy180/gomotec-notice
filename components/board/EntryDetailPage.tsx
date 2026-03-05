@@ -10,16 +10,9 @@ import { markEntryCommentsRead } from '../../lib/firebaseComments';
 import { CATEGORY_LABEL, COMPANY_LABEL, DEV_STATUS_LABEL } from '../../config/boardOptions';
 import {
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Chip,
-  Divider,
   HelpText,
-  LinkButton,
   Row,
-  SubTitle,
-  Title,
   ErrorText,
 } from '../ui/Controls';
 import { SkeletonBlock } from '../ui/Skeleton';
@@ -30,11 +23,117 @@ import CommentsSection from './CommentsSection';
 import { formatKoreanDateTime, formatKoreanDateTimeRange } from '@/lib/utils/data';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
-const Content = styled.div`
-  white-space: pre-wrap;
-  line-height: 1.7;
-  font-size: ${({ theme }) => theme.fontSize.md};
+// --- Styled Components (High Density Toss Style) ---
+
+const PageWrapper = styled.div`
+  max-width: 1300px; /* 요청하신 1300px 적용 */
+  margin: 0 auto;
+  box-sizing: border-box;
 `;
+
+const TopActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px; /* 상단 액션바와 본문 사이 여백 축소 */
+`;
+
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #4E5968; /* 조금 더 선명한 색상으로 가독성 확보 */
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px 4px 0;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #191F28;
+  }
+`;
+
+const ArticleContainer = styled.article`
+  background: #FFFFFF;
+  border: 1px solid #E5E8EB;
+  border-radius: 12px; /* 곡률을 줄여 단정한 느낌 */
+  padding: 24px; /* 내부 여백 대폭 축소 (기존 40px -> 24px) */
+`;
+
+const HeaderSection = styled.header`
+  margin-bottom: 16px; /* 헤더와 본문 간격 축소 */
+`;
+
+const TitleText = styled.h1`
+  font-size: 1.5rem; /* 제목 크기를 약간 줄여 밀도 향상 */
+  font-weight: 700;
+  color: #191F28;
+  margin: 0 0 10px 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: #8B95A1;
+  font-size: 0.875rem; /* 메타데이터 크기 축소 */
+  font-weight: 500;
+  margin-bottom: 12px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  span:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    background-color: #D1D6DB;
+    border-radius: 50%;
+    margin-left: 10px;
+  }
+`;
+
+const ChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+`;
+
+const Divider = styled.hr`
+  border: none;
+  height: 1px;
+  background-color: #E5E8EB;
+  margin: 16px 0; /* 구분선 위아래 여백 대폭 축소 */
+`;
+
+const ContentText = styled.div`
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 1rem;
+  color: #333D4B;
+  word-break: break-word;
+`;
+
+const DevInfoBox = styled.div`
+  background-color: #F9FAFB;
+  border-radius: 8px; /* 박스 곡률 축소 */
+  padding: 12px 16px; /* 내부 여백 축소 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+`;
+
+// --- Component ---
 
 export default function EntryDetailPage({ id }: { id: string }) {
   const router = useRouter();
@@ -70,11 +169,9 @@ export default function EntryDetailPage({ id }: { id: string }) {
     return () => unsub();
   }, [id]);
 
-  // ✅ 글 작성자가 글 상세를 열면: 해당 글 댓글을 읽음 처리
   useEffect(() => {
     if (!user || !entry) return;
     if (user.uid !== entry.authorUid) return;
-
     markEntryCommentsRead(entry.id, user.uid).catch((e) => console.error(e));
   }, [user?.uid, entry?.id]);
 
@@ -82,7 +179,6 @@ export default function EntryDetailPage({ id }: { id: string }) {
 
   const headerChips = useMemo(() => {
     if (!entry) return null;
-
     const chips: Array<{ label: string; tone?: 'primary' | 'warning' | 'success' | 'neutral' }> = [];
 
     chips.push({
@@ -105,7 +201,6 @@ export default function EntryDetailPage({ id }: { id: string }) {
 
   async function confirmDelete() {
     if (!entry) return;
-
     if (!user) {
       auth.openLogin({ redirectTo: `/posts/${entry.id}` });
       return;
@@ -123,8 +218,7 @@ export default function EntryDetailPage({ id }: { id: string }) {
       setDeleteOpen(false);
       router.push('/');
     } catch (e) {
-      const msg = e instanceof Error ? e.message : '삭제 실패';
-      setDeleteErr(msg);
+      setDeleteErr(e instanceof Error ? e.message : '삭제 실패');
     } finally {
       setDeleteBusy(false);
     }
@@ -132,122 +226,123 @@ export default function EntryDetailPage({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <Card aria-label="상세 로딩 중">
-        <CardHeader>
-          <div style={{ width: '100%' }}>
-            <SkeletonBlock $h={30} $w="320px" />
-            <div style={{ height: 12 }} />
-            <SkeletonBlock $h={18} $w="70%" />
-          </div>
-        </CardHeader>
-        <CardBody>
-          <SkeletonBlock $h={18} $w="92%" />
-          <div style={{ height: 10 }} />
-          <SkeletonBlock $h={18} $w="96%" />
-          <div style={{ height: 10 }} />
-          <SkeletonBlock $h={18} $w="84%" />
-        </CardBody>
-      </Card>
+      <PageWrapper>
+        <ArticleContainer aria-label="상세 로딩 중">
+          <SkeletonBlock $h={28} $w="50%" style={{ marginBottom: 12 }} />
+          <SkeletonBlock $h={18} $w="30%" style={{ marginBottom: 16 }} />
+          <Divider />
+          <SkeletonBlock $h={16} $w="100%" style={{ marginBottom: 8 }} />
+          <SkeletonBlock $h={16} $w="80%" style={{ marginBottom: 8 }} />
+          <SkeletonBlock $h={16} $w="90%" />
+        </ArticleContainer>
+      </PageWrapper>
     );
   }
 
   if (err) {
     return (
-      <EmptyState
-        title="상세 정보를 불러오지 못했어요"
-        description={`에러: ${err}`}
-        actionLabel="목록으로"
-        onAction={() => router.push('/')}
-      />
+      <PageWrapper>
+        <EmptyState
+          title="상세 정보를 불러오지 못했어요"
+          description={`에러: ${err}`}
+          actionLabel="목록으로 돌아가기"
+          onAction={() => router.push('/')}
+        />
+      </PageWrapper>
     );
   }
 
   if (!entry) {
     return (
-      <EmptyState
-        title="글을 찾을 수 없어요"
-        description="삭제되었거나 존재하지 않는 글입니다."
-        actionLabel="목록으로"
-        onAction={() => router.push('/')}
-      />
+      <PageWrapper>
+        <EmptyState
+          title="글을 찾을 수 없어요"
+          description="삭제되었거나 존재하지 않는 글입니다."
+          actionLabel="목록으로 돌아가기"
+          onAction={() => router.push('/')}
+        />
+      </PageWrapper>
     );
   }
 
   if (editMode) {
     return (
-      <>
+      <PageWrapper>
         <EntryForm mode="edit" entryId={entry.id} initial={entry} onDone={() => setEditMode(false)} />
         <div style={{ height: 12 }} />
         <Row style={{ justifyContent: 'flex-end' }}>
           <Button type="button" $variant="ghost" onClick={() => setEditMode(false)}>
-            수정 취소(상세로)
+            수정 취소
           </Button>
         </Row>
-      </>
+      </PageWrapper>
     );
   }
 
   return (
-    <>
-      <Card aria-label="글 상세">
-        <CardHeader>
-          <div>
-            <Title>{entry.title}</Title>
-            <SubTitle>
-              {COMPANY_LABEL[entry.company]} · {entry.authorName} · 작성 {entry.createdAt ? formatKoreanDateTime(entry.createdAt) : '—'}
-              {entry.updatedAt ? ` · 수정 ${formatKoreanDateTime(entry.updatedAt)}` : ''}
-            </SubTitle>
+    <PageWrapper>
+      <TopActions>
+        <BackButton onClick={() => router.push('/')} aria-label="목록으로 이동">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          목록으로
+        </BackButton>
 
-            <Row style={{ marginTop: 12 }}>
-              {headerChips?.map((c, idx) => (
-                <Chip key={idx} $tone={c.tone}>
-                  {c.label}
-                </Chip>
-              ))}
-            </Row>
-          </div>
-
-          <Row>
-            <LinkButton href="/" $variant="ghost">
-              목록
-            </LinkButton>
-
-            {isMine ? (
-              <>
-                <Button type="button" $variant="ghost" onClick={() => setEditMode(true)}>
-                  수정
-                </Button>
-                <Button type="button" $variant="danger" onClick={() => setDeleteOpen(true)}>
-                  삭제
-                </Button>
-              </>
-            ) : null}
+        {isMine && (
+          <Row style={{ gap: '4px' }}>
+            <Button type="button" $variant="ghost" onClick={() => setEditMode(true)} style={{ color: '#4E5968', padding: '6px 12px', fontSize: '0.875rem' }}>
+              수정
+            </Button>
+            <Button type="button" $variant="ghost" onClick={() => setDeleteOpen(true)} style={{ color: '#F04452', padding: '6px 12px', fontSize: '0.875rem' }}>
+              삭제
+            </Button>
           </Row>
-        </CardHeader>
+        )}
+      </TopActions>
 
-        <CardBody>
-          {entry.category === 'DEV' && (
-            <>
-              <Row>
-                <Chip $tone="primary">개발예정시간</Chip>
-                <HelpText>{formatKoreanDateTimeRange(entry.plannedStartAt, entry.plannedEndAt)}</HelpText>
-              </Row>
-              <Divider />
-            </>
-          )}
+      <ArticleContainer aria-label="글 상세">
+        <HeaderSection>
+          <TitleText>{entry.title}</TitleText>
+          <MetaRow>
+            <span>{COMPANY_LABEL[entry.company]} · {entry.authorName}</span>
+            <span>작성 {entry.createdAt ? formatKoreanDateTime(entry.createdAt) : '—'}</span>
+            {entry.updatedAt && (
+              <span>수정 {formatKoreanDateTime(entry.updatedAt)}</span>
+            )}
+          </MetaRow>
 
-          <Content aria-label="내용">{entry.content}</Content>
-        </CardBody>
-      </Card>
+          <ChipRow>
+            {headerChips?.map((c, idx) => (
+              <Chip key={idx} $tone={c.tone}>{c.label}</Chip>
+            ))}
+          </ChipRow>
+        </HeaderSection>
 
-      <div style={{ height: 16 }} />
+        <Divider />
 
+        {entry.category === 'DEV' && entry.plannedStartAt && entry.plannedEndAt && (
+          <DevInfoBox>
+            <Chip $tone="primary">개발예정</Chip>
+            <HelpText style={{ margin: 0, fontWeight: 500, color: '#4E5968', fontSize: '0.875rem' }}>
+              {formatKoreanDateTimeRange(entry.plannedStartAt, entry.plannedEndAt)}
+            </HelpText>
+          </DevInfoBox>
+        )}
+
+        <ContentText aria-label="내용">{entry.content}</ContentText>
+      </ArticleContainer>
+
+      <div style={{ height: '24px' }} />
+
+      {/* 댓글 섹션 */}
       <CommentsSection entryId={entry.id} entryTitle={entry.title} entryAuthorUid={entry.authorUid} />
 
+      {/* 삭제 모달 */}
       <Modal
         open={deleteOpen}
-        title="글 삭제"
-        description="삭제는 되돌릴 수 없습니다. 정말 삭제하시겠어요?"
+        title="글을 삭제하시겠어요?"
+        description="삭제한 글은 다시 복구할 수 없습니다."
         onClose={() => {
           setDeleteOpen(false);
           setDeleteErr(null);
@@ -258,13 +353,13 @@ export default function EntryDetailPage({ id }: { id: string }) {
               취소
             </Button>
             <Button type="button" $variant="danger" onClick={confirmDelete} disabled={deleteBusy}>
-              {deleteBusy ? '삭제 중…' : '삭제'}
+              {deleteBusy ? '삭제 중…' : '삭제하기'}
             </Button>
           </>
         }
       >
-        {deleteErr ? <ErrorText>{deleteErr}</ErrorText> : null}
+        {deleteErr && <ErrorText>{deleteErr}</ErrorText>}
       </Modal>
-    </>
+    </PageWrapper>
   );
 }
