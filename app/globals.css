@@ -1,3 +1,42 @@
+/* 1. 페이퍼로지 폰트 강제 주입 (굵기별 설정) */
+@font-face {
+    font-family: 'Paperlogy';
+    font-weight: 400;
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Paperlogy';
+    font-weight: 500;
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Paperlogy';
+    font-weight: 600;
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Paperlogy';
+    font-weight: 700;
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');
+}
+
+/* 2. 여기에 기존 Tailwind 설정이 있다면 그대로 둡니다 */
+/* @tailwind base; */
+/* @tailwind components; */
+/* @tailwind utilities; */
+
+/* 3. HTML 전체 기본 폰트 강제 고정 */
+html, body {
+  font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 4. 버튼, 인풋 등에도 강제 상속되도록 처리 */
+input, button, textarea, select {
+  font-family: inherit !important;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -39,4 +78,19 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+/* 1. 페이퍼로지 폰트 불러오기 (최상단에 위치해야 합니다) */
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
+
+/* 2. 프로젝트 전체 기본 폰트로 설정 */
+body {
+  font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3. 버튼이나 인풋 등에도 강제 상속되도록 처리 */
+input, button, textarea, select {
+  font-family: inherit;
 }

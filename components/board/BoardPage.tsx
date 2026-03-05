@@ -31,32 +31,39 @@ import Link from 'next/link';
 import ProcessTabs from '../ui/ProcessTabs';
 import { formatKoreanDateTime, formatKoreanDateTimeRange } from '@/lib/utils/data';
 
-// --- Styled Components (Toss-like Compact & Intuitive) ---
+// --- Styled Components (Clean & Compact with Paperlogy Font) ---
 
 const PageContainer = styled.div`
   width: 100%;
   margin: 0;
   padding: 0;
-  /* 토스 특유의 미세한 쿨톤 배경색 */
   background-color: #F9FAFB; 
   min-height: 100vh;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* 폰트를 페이퍼로지로 완벽하게 고정 */
+  font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  
+  * {
+    font-family: inherit;
+  }
 `;
 
 const FlushHeader = styled.header`
   width: 100%;
   margin: 0;
-  /* 상단 헤더 여백 축소 */
-  padding: 40px 5% 24px;
+  padding: 32px 5% 24px;
   background-color: #FFFFFF;
   border-bottom: 1px solid #E5E8EB; 
   box-sizing: border-box;
 `;
 
+const HeaderInner = styled.div`
+  max-width: 1300px;
+  margin: 0 auto;
+`;
+
 const HeaderTitle = styled.h1`
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   font-weight: 700;
-  /* 토스의 또렷한 메인 텍스트 컬러 */
   color: #191F28; 
   margin: 0 0 8px;
   letter-spacing: -0.02em;
@@ -70,15 +77,14 @@ const HeaderSubTitle = styled.p`
 `;
 
 const ContentSection = styled.main`
-  max-width: 1200px;
+  max-width: 1300px; /* 요청하신 1300px 유지 */
   margin: 0 auto;
-  /* 본문 상하 여백 축소 */
-  padding: 32px 5%;
+  padding: 24px 5% 64px;
   box-sizing: border-box;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #191F28;
   margin-bottom: 16px;
@@ -87,8 +93,8 @@ const SectionTitle = styled.h2`
   gap: 8px;
 
   span.count {
-    color: #3182F6; /* 포인트 컬러(블루)로 건수 강조 */
-    font-size: 1rem;
+    color: #3182F6;
+    font-size: 0.9375rem;
     font-weight: 600;
   }
 `;
@@ -98,27 +104,25 @@ const List = styled.ul`
   padding: 0;
   margin: 0;
   display: grid;
-  /* 리스트 간격을 대폭 줄여 꽉 찬 느낌 부여 */
-  gap: 12px; 
+  gap: 10px; /* 리스트 간격 타이트하게 유지 */
 `;
 
 const ItemLink = styled(Link)`
   display: block;
-  /* 내부 여백을 줄여 밀도 상승 */
-  padding: 20px 24px;
+  padding: 16px 20px; /* 내부 여백 압축 */
   background-color: #FFFFFF;
   border: 1px solid #E5E8EB; 
-  border-radius: 12px; /* 라운드를 살짝 줄여 정돈된 느낌 */
+  border-radius: 12px;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 
-  /* 그림자가 붕 뜨는 대신 배경색이 눌리는 토스식 호버 */
   &:hover {
-    background-color: #F2F4F6;
+    background-color: #F9FAFB;
+    border-color: #D1D6DB;
   }
 
   &:active {
-    background-color: #E5E8EB;
+    background-color: #F2F4F6;
   }
 `;
 
@@ -127,20 +131,20 @@ const ItemTop = styled.div`
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 `;
 
 const ItemTitle = styled.h3`
   margin: 0 0 6px;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: #191F28;
   line-height: 1.4;
 `;
 
 const ItemExcerpt = styled.p`
-  margin: 0 0 12px;
-  color: #4E5968; /* 서브 텍스트 대비를 살짝 올려 가독성 확보 */
+  margin: 0 0 10px;
+  color: #4E5968; 
   font-size: 0.9375rem;
   line-height: 1.5;
   
@@ -153,11 +157,11 @@ const ItemExcerpt = styled.p`
 
 const ItemMeta = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
   color: #8B95A1;
-  font-size: 0.8125rem; /* 메타 데이터 사이즈 축소 */
+  font-size: 0.8125rem;
   font-weight: 500;
 
   span {
@@ -168,11 +172,11 @@ const ItemMeta = styled.div`
   span:not(:last-child)::after {
     content: '';
     display: inline-block;
-    width: 2px;
-    height: 2px;
+    width: 3px;
+    height: 3px;
     background-color: #D1D6DB;
     border-radius: 50%;
-    margin-left: 12px;
+    margin-left: 10px;
   }
 `;
 
@@ -289,25 +293,35 @@ export default function BoardPage() {
     return filteredSorted.slice(start, start + DEFAULT_PAGE_SIZE);
   }, [filteredSorted, safePage]);
 
+  // 필터 인풋 공통 스타일
+  const inputStyle = {
+    padding: '10px 14px',
+    borderRadius: '8px',
+    border: '1px solid #E5E8EB',
+    backgroundColor: '#FFFFFF',
+    fontSize: '0.9375rem',
+  };
+
   return (
     <PageContainer aria-label="개발관리 접수대장 목록">
       <FlushHeader>
-        <HeaderTitle>접수대장</HeaderTitle>
-        <HeaderSubTitle>
-          공정별 개발진행/피드백/추가 요청을 기록하고 공유합니다
-        </HeaderSubTitle>
+        <HeaderInner>
+          <HeaderTitle>접수대장</HeaderTitle>
+          <HeaderSubTitle>공정별 개발진행 · 피드백 · 추가 요청</HeaderSubTitle>
+        </HeaderInner>
       </FlushHeader>
 
       <ContentSection>
-        {/* 필터 마진을 40px -> 24px로 줄여 밀도 향상 */}
-        <FieldGrid style={{ marginBottom: '24px' }}>
-          <Field>
-            <Label htmlFor="sort">정렬</Label>
+        {/* 기존의 레이아웃(FieldGrid)을 유지하되 간격만 다듬음 */}
+        <FieldGrid style={{ marginBottom: '20px', gap: '16px' }}>
+          <Field style={{ gap: '6px' }}>
+            <Label htmlFor="sort" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>정렬</Label>
             <Select
               id="sort"
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
               aria-label="정렬 기준"
+              style={inputStyle}
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -317,26 +331,28 @@ export default function BoardPage() {
             </Select>
           </Field>
 
-          <Field>
-            <Label htmlFor="search">검색</Label>
+          <Field style={{ gap: '6px' }}>
+            <Label htmlFor="search" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>검색</Label>
             <Input
               id="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="작성자, 제목, 내용 검색"
               aria-label="작성자 제목 내용 검색"
+              style={inputStyle}
             />
           </Field>
 
-          <Field>
-            <Label htmlFor="category">항목</Label>
+          <Field style={{ gap: '6px' }}>
+            <Label htmlFor="category" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>항목</Label>
             <Select
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value as EntryCategory | 'ALL')}
               aria-label="항목 필터"
+              style={inputStyle}
             >
-              <option value="ALL">전체</option>
+              <option value="ALL">전체 보기</option>
               {CATEGORY_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -345,15 +361,16 @@ export default function BoardPage() {
             </Select>
           </Field>
 
-          <Field>
-            <Label htmlFor="company">소속</Label>
+          <Field style={{ gap: '6px' }}>
+            <Label htmlFor="company" style={{ fontSize: '0.8125rem', color: '#4E5968' }}>소속</Label>
             <Select
               id="company"
               value={company}
               onChange={(e) => setCompany(e.target.value as Company | 'ALL')}
               aria-label="소속 필터"
+              style={inputStyle}
             >
-              <option value="ALL">전체</option>
+              <option value="ALL">전체 보기</option>
               {COMPANY_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -363,8 +380,8 @@ export default function BoardPage() {
           </Field>
         </FieldGrid>
 
-        <div style={{ marginBottom: '40px' }}>
-          <Label style={{ marginBottom: '12px', display: 'block', fontWeight: 600, color: '#4E5968' }}>공정 필터</Label>
+        <div style={{ marginBottom: '32px' }}>
+          <Label style={{ display: 'block', fontSize: '0.8125rem', color: '#4E5968', marginBottom: '8px', fontWeight: 600 }}>공정 필터</Label>
           <ProcessTabs value={process} options={PROCESS_OPTIONS} onChange={setProcess} includeAll ariaLabel="공정 필터" />
         </div>
 
@@ -376,12 +393,12 @@ export default function BoardPage() {
           {loading ? (
             <SkeletonList aria-label="목록 로딩 중">
               {Array.from({ length: DEFAULT_PAGE_SIZE }).map((_, i) => (
-                <div key={i} style={{ padding: '20px 24px', borderRadius: '12px', border: '1px solid #E5E8EB', backgroundColor: '#FFFFFF' }}>
-                  <Row style={{ marginBottom: '12px' }}>
+                <div key={i} style={{ padding: '16px 20px', borderRadius: '12px', border: '1px solid #E5E8EB', backgroundColor: '#FFFFFF' }}>
+                  <Row style={{ marginBottom: '10px' }}>
                     <SkeletonBlock $h={24} $w="60px" />
                     <SkeletonBlock $h={24} $w="80px" />
                   </Row>
-                  <SkeletonBlock $h={22} $w="50%" style={{ marginBottom: '10px' }} />
+                  <SkeletonBlock $h={20} $w="50%" style={{ marginBottom: '8px' }} />
                   <SkeletonBlock $h={16} $w="100%" style={{ marginBottom: '6px' }} />
                   <SkeletonBlock $h={16} $w="70%" />
                 </div>
@@ -390,7 +407,7 @@ export default function BoardPage() {
           ) : error ? (
             <EmptyState
               title="데이터를 불러오지 못했습니다"
-              description={`네트워크 또는 서버 문제일 수 있습니다. 에러: ${error}`}
+              description={`에러: ${error}`}
               actionLabel="새로고침"
               onAction={() => window.location.reload()}
             />
@@ -432,7 +449,9 @@ export default function BoardPage() {
                           </span>
                           <span>{e.createdAt ? formatKoreanDateTime(e.createdAt) : '기록중…'}</span>
                           {e.category === 'DEV' && e.plannedStartAt && e.plannedEndAt && (
-                            <span>예정: {formatKoreanDateTimeRange(e.plannedStartAt, e.plannedEndAt)}</span>
+                            <span style={{ color: '#3182F6' }}>
+                              예정: {formatKoreanDateTimeRange(e.plannedStartAt, e.plannedEndAt)}
+                            </span>
                           )}
                         </ItemMeta>
                       </ItemLink>
@@ -441,7 +460,7 @@ export default function BoardPage() {
                 })}
               </List>
 
-              <div style={{ marginTop: '32px' }}>
+              <div style={{ marginTop: '24px' }}>
                 <Pagination totalPages={totalPages} page={safePage} onChange={setPage} />
               </div>
             </>
